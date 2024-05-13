@@ -1,0 +1,83 @@
+version: "3"
+
+services:
+  frontend:
+    container_name: "frontend-react"
+    build: 
+      context: ../frontend
+      dockerfile: ../frontend/Dockerfile
+    command: npm start
+    networks:
+      - test-network
+    ports:
+      - "3003:3002"
+    volumes:
+      - ../frontend:/usr/app
+    depends_on:
+      - db
+    restart: always
+
+
+  db:
+    container_name: "postgres-react"
+    build: ./postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=cedup
+      - POSTGRES_PASSWORD=cedup
+      - POSTGRES_DB=cedup
+    volumes:
+      - ./data:/data/postgres
+    networks:
+      - test-network
+
+  app1:
+    container_name: "projeto-react"
+    build: .
+    command: npm start
+    networks:
+      - test-network
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/usr/app
+    depends_on:
+      - db
+    restart: always
+
+
+  pgadm:
+    image: dpage/pgadmin4
+    container_name: "postgres-pgadm"
+    ports:
+      - "82:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=alaniunkes123@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=cedup
+    networks:
+      - test-network
+    depends_on:
+      - db
+
+
+  node-red:
+    container_name: "node-red"
+    build: 
+      context: ../node-red
+      dockerfile: ../node-red/Dockerfile
+    volumes:
+      - node-red-data:/data
+    networks:
+      - test-network
+    ports:
+      - "1880:1880" 
+    restart: always
+
+networks:
+  test-network:
+    driver:
+      bridge
+
+volumes:
+  node-red-data:
